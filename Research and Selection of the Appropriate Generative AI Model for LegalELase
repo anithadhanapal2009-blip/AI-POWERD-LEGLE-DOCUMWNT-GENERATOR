@@ -1,0 +1,143 @@
+ researched the current Google Gemini documentation rather than relying on the older gemini-1.5-pro recommendation. For a new LegalEase application, the more appropriate choice is Gemini 2.5 Pro.
+
+1. LegalEase Requirements
+LegalEase needs a generative AI model capable of:
+
+Generating contracts, NDAs, agreements, and other structured legal documents.
+
+Understanding user inputs such as:
+
+Document type
+
+Parties involved
+
+Obligations and terms
+
+Effective and termination dates
+
+Governing law
+
+Confidentiality provisions
+
+Producing consistent sections, clauses, headings, and formatting.
+
+Handling long legal documents and reference material.
+
+Following detailed instructions and reasoning about relationships between clauses.
+
+Returning structured output that can be converted into DOCX/PDF documents.
+
+2. Models Considered
+Model	Relevant capability	Suitability for LegalEase
+Gemini 2.5 Pro	Advanced reasoning, 1M-token input, 65K-token output, structured outputs	Highly suitable
+Gemini 2.5 Flash	Faster and lower-cost reasoning model	Suitable for simpler/high-volume tasks
+Gemini 2.5 Flash-Lite	Fastest/budget-oriented option	Better for simple extraction/classification
+Gemini 1.5 Pro	Long-context model from an older generation	Not recommended for a new implementation
+
+Google currently describes Gemini 2.5 Pro as its advanced model for complex tasks, with support for long-context document analysis. Its API documentation lists a 1,048,576-token input limit and 65,536-token output limit. 
+G
+Google AI for Developers
++1
+
+3. Why Gemini 2.5 Pro?
+Long-context capability:
+LegalEase may need to process lengthy agreements, templates, policies, and supporting documents. Gemini 2.5 Pro supports approximately 1 million input tokens, making it suitable for large legal-document contexts. 
+G
+Google AI for Developers
++1
+
+Advanced reasoning:
+Google describes Gemini 2.5 Pro as a reasoning model designed for complex problems and analysis of large datasets, codebases, and documents. This is relevant when LegalEase needs to generate clauses based on multiple user-provided conditions rather than simply produce generic text. 
+G
+Google AI for Developers
+
+Structured output:
+LegalEase should not rely on free-form AI text alone. Gemini supports structured outputs using JSON Schema, allowing the application to request predictable fields such as documentTitle, parties, effectiveDate, clauses, and signatures. 
+G
+Google AI for Developers
++1
+
+For example, the application could receive:
+
+{
+  "documentType": "Non-Disclosure Agreement",
+  "parties": [
+    "Company A",
+    "Company B"
+  ],
+  "effectiveDate": "2026-10-01",
+  "clauses": [
+    {
+      "title": "Confidentiality",
+      "content": "..."
+    },
+    {
+      "title": "Term",
+      "content": "..."
+    }
+  ],
+  "governingLaw": "Tamil Nadu, India"
+}
+
+The application can then transform this structured response into a properly formatted legal document.
+
+4. Why Not Gemini 1.5 Pro?
+The original proposal selected Gemini 1.5 Pro, primarily because of its long context window and document-generation capabilities.
+
+However, Google's current documentation identifies Gemini 2.5 Pro as a newer advanced reasoning model, and Google's Gemini 2.5 Pro model card states that it provides improved performance compared with Gemini 1.5 Pro. 
+G
+Google DeepMind
+
+Therefore, Gemini 1.5 Pro should not be selected as the primary model for a new LegalEase implementation simply because it has a large context window.
+
+5. Final Model Selection
+Selected Generative AI Model: gemini-2.5-pro
+
+Reason: Gemini 2.5 Pro provides the combination most relevant to LegalEase: long-context document processing, advanced reasoning, multimodal/document understanding, and structured JSON output. Its 1M-token input capacity is also useful when LegalEase needs to work with lengthy contracts, templates, or reference documents. 
+G
+Google AI for Developers
++1
+
+6. Recommended LegalEase Architecture
+A practical implementation would be:
+
+User Input → Validation → Gemini 2.5 Pro → Structured JSON → Document Formatter → DOCX/PDF
+
+For example:
+
+User selects NDA.
+
+LegalEase collects parties, dates, confidentiality terms, governing law, etc.
+
+Backend validates the inputs.
+
+The application sends the information and a controlled drafting prompt to Gemini 2.5 Pro.
+
+Gemini returns a structured document representation.
+
+The backend validates the generated structure.
+
+The application converts it into a professional DOCX/PDF.
+
+The user reviews the document before signing or relying on it.
+
+Final conclusion for your project report
+Selected Model: Gemini 2.5 Pro (gemini-2.5-pro)
+
+After evaluating Google's Gemini model documentation, Gemini 2.5 Pro was selected as the generative AI model for LegalEase. It is designed for complex reasoning and document analysis and supports a 1-million-token input context, making it suitable for processing lengthy legal documents and reference material. It also supports structured outputs through JSON Schema, allowing LegalEase to generate predictable document components such as parties, dates, clauses, obligations, and signature sections. These capabilities make Gemini 2.5 Pro more appropriate for the LegalEase legal-document-generation workflow than the older Gemini 1.5 Pro model. 
+G
+Google AI for Developers
++2
+
+Official reference: Google Gemini API — Models Documentation
+
+Important: This model selection is about technical suitability; generated legal documents should still undergo appropriate legal review before being relied upon.
+
+
+
+GG
+GG
+Sources
+ChatGPT is AI and can make mistakes.
+
+You’ll get smarter responses and can uplo
