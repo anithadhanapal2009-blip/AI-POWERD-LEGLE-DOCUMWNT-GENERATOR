@@ -1,0 +1,419 @@
+1. Objective
+Set up the development environment required to build LegalEase, including the frontend, backend, database, Gemini API integration, document-generation module, and version-control system.
+
+The environment should support the following workflow:
+
+User Interface
+      ↓
+Backend API
+      ↓
+Gemini 2.5 Pro
+      ↓
+Structured Legal Content
+      ↓
+Document Generator
+      ↓
+DOCX / PDF
+
+2. Recommended Technology Stack
+Component	Technology
+Frontend	React + Vite
+Backend	Python + FastAPI
+AI Model	Gemini 2.5 Pro
+AI SDK	Google Gen AI SDK
+Database	PostgreSQL
+ORM	SQLAlchemy
+Document Format	DOCX
+PDF	PDF generation/conversion library
+API Testing	Postman
+Version Control	Git + GitHub
+Environment Management	.env
+IDE	VS Code
+
+Google's current Gemini API documentation recommends the Google GenAI SDK for interacting with Gemini models. Google Gemini API Documentation
+
+3. Install Required Software
+Install the following on the development machine:
+
+Required
+Python 3.11+
+
+Node.js 20+
+
+npm
+
+Git
+
+PostgreSQL
+
+VS Code
+
+Postman
+
+Verify the installations:
+
+python --version
+node --version
+npm --version
+git --version
+psql --version
+
+4. Create the Project
+Create the main project directory:
+
+mkdir legalease
+cd legalease
+
+Initialize Git:
+
+git init
+
+Recommended project structure:
+
+legalease/
+│
+├── frontend/
+│
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   ├── models/
+│   │   ├── schemas/
+│   │   ├── services/
+│   │   │   ├── ai/
+│   │   │   └── document/
+│   │   ├── database/
+│   │   └── main.py
+│   │
+│   ├── tests/
+│   ├── requirements.txt
+│   └── .env
+│
+├── docs/
+│
+├── .gitignore
+└── README.md
+
+5. Set Up the Backend
+Move into the backend directory:
+
+cd backend
+
+Create a Python virtual environment:
+
+python -m venv venv
+
+Activate it.
+
+Windows
+venv\Scripts\activate
+
+macOS/Linux
+source venv/bin/activate
+
+Install the initial dependencies:
+
+pip install fastapi uvicorn google-genai python-dotenv sqlalchemy psycopg2-binary pydantic python-docx
+
+Save them:
+
+pip freeze > requirements.txt
+
+6. Configure Gemini API
+Create a Gemini API key through Google's AI development platform and store it as an environment variable rather than placing it directly in source code.
+
+Create:
+
+backend/.env
+
+Example:
+
+GEMINI_API_KEY=your_api_key_here
+
+DATABASE_URL=postgresql://username:password@localhost:5432/legalease
+
+APP_ENV=development
+
+Do not commit .env to Git.
+
+Add to .gitignore:
+
+venv/
+.env
+__pycache__/
+*.pyc
+node_modules/
+dist/
+
+The Gemini API documentation provides the current authentication and SDK setup instructions. Gemini API Quickstart
+
+7. Create the Gemini Service
+Create:
+
+backend/app/services/ai/gemini_service.py
+
+Basic implementation:
+
+import os
+from google import genai
+from dotenv import load_dotenv
+
+load_dotenv()
+
+client = genai.Client(
+    api_key=os.getenv("GEMINI_API_KEY")
+)
+
+MODEL_NAME = "gemini-2.5-pro"
+
+
+def generate_legal_document(prompt: str):
+    response = client.models.generate_content(
+        model=MODEL_NAME,
+        contents=prompt
+    )
+
+    return response.text
+
+This isolates Gemini functionality from the rest of the application.
+
+8. Create the FastAPI Application
+Create:
+
+backend/app/main.py
+
+from fastapi import FastAPI
+
+app = FastAPI(
+    title="LegalEase API",
+    description="AI-powered legal document generation API",
+    version="1.0.0"
+)
+
+
+@app.get("/")
+def root():
+    return {
+        "application": "LegalEase",
+        "status": "running"
+    }
+
+
+@app.get("/health")
+def health():
+    return {
+        "status": "healthy"
+    }
+
+Run the backend:
+
+uvicorn app.main:app --reload
+
+The API should be available locally at:
+
+http://localhost:8000
+
+FastAPI's interactive API documentation should be available at:
+
+http://localhost:8000/docs
+
+9. Set Up the Frontend
+From the project root:
+
+npm create vite@latest frontend -- --template react
+
+Then:
+
+cd frontend
+npm install
+npm run dev
+
+The frontend will normally be available at:
+
+http://localhost:5173
+
+The initial UI should contain:
+
+LegalEase
+─────────────────────────────
+
+Create Legal Document
+
+Document Type
+[ Select document type ▼ ]
+
+Party 1
+[________________________]
+
+Party 2
+[________________________]
+
+Effective Date
+[________________________]
+
+Terms & Conditions
+[________________________]
+
+Additional Clauses
+[________________________]
+
+        [ Generate Document ]
+
+10. Set Up PostgreSQL
+Create a database:
+
+CREATE DATABASE legalease;
+
+The backend will connect using:
+
+DATABASE_URL=postgresql://username:password@localhost:5432/legalease
+
+Initial tables can include:
+
+users
+documents
+document_versions
+document_templates
+generation_requests
+
+11. Test Gemini Integration
+Create a simple test script:
+
+backend/test_gemini.py
+
+from app.services.ai.gemini_service import generate_legal_document
+
+prompt = """
+Create a simple sample Non-Disclosure Agreement.
+
+Parties:
+ABC Technologies Pvt. Ltd.
+XYZ Solutions Pvt. Ltd.
+
+Effective Date:
+1 October 2026
+
+Include:
+1. Confidential Information
+2. Confidentiality Obligations
+3. Term
+4. Governing Law
+5. Signatures
+
+This is a development test only.
+"""
+
+result = generate_legal_document(prompt)
+
+print(result)
+
+Run:
+
+python test_gemini.py
+
+If the API key and SDK configuration are correct, the application should receive a Gemini-generated response.
+
+12. Create the Initial API Endpoint
+The next step is to expose document generation through the backend.
+
+Example:
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+from app.services.ai.gemini_service import generate_legal_document
+
+app = FastAPI()
+
+
+class DocumentRequest(BaseModel):
+    document_type: str
+    party_a: str
+    party_b: str
+    effective_date: str
+    terms: str
+
+
+@app.post("/api/documents/generate")
+def generate_document(request: DocumentRequest):
+
+    prompt = f"""
+    Generate a {request.document_type}.
+
+    Party A: {request.party_a}
+    Party B: {request.party_b}
+    Effective Date: {request.effective_date}
+
+    Terms:
+    {request.terms}
+
+    Generate a professionally structured document
+    with appropriate sections and clauses.
+    """
+
+    document = generate_legal_document(prompt)
+
+    return {
+        "document_type": request.document_type,
+        "content": document
+    }
+
+This establishes the basic:
+
+Frontend
+   ↓
+POST /api/documents/generate
+   ↓
+FastAPI
+   ↓
+Gemini 2.5 Pro
+   ↓
+Generated Document
+
+13. Development Environment Verification
+The environment is considered successfully configured when all of the following work:
+
+Test	Expected Result
+Python installation	Successful
+Node.js installation	Successful
+Git repository	Initialized
+FastAPI server	Running
+React application	Running
+PostgreSQL	Connected
+Gemini API	Responding
+.env configuration	Working
+/health endpoint	Returns healthy
+/docs	FastAPI Swagger UI opens
+Document generation API	Returns generated content
+
+14. Epic 1 Acceptance Criteria
+Development Environment
+ Git repository created.
+
+ Frontend project created.
+
+ Backend project created.
+
+ Python virtual environment configured.
+
+ Required Python packages installed.
+
+ React dependencies installed.
+
+ PostgreSQL database created.
+
+ Environment variables configured.
+
+ Gemini API credentials configured securely.
+
+ Gemini 2.5 Pro integration tested.
+
+ FastAPI server successfully running.
+
+ Frontend successfully running.
+
+ Frontend-to-backend communication tested.
+
+ Basic legal-document generation tested.
+
+ .env and sensitive files excluded from Git.
