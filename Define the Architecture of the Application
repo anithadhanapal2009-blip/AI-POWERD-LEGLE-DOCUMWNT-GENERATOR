@@ -1,0 +1,427 @@
+Objective:
+Design the technical architecture of LegalEase and integrate an appropriate Generative AI model for generating structured legal documents such as contracts, NDAs, agreements, and other legal templates.
+
+Selected AI Model: Gemini 2.5 Pro
+
+Primary Goal:
+Create a secure, modular architecture in which user requirements are collected, validated, processed by the Generative AI model, and transformed into structured, downloadable legal documents.
+
+2. High-Level Application Architecture
+                    ┌─────────────────────────┐
+                    │       LegalEase User    │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │     Frontend / UI        │
+                    │  - Document Selection    │
+                    │  - Party Details         │
+                    │  - Terms & Conditions    │
+                    │  - Dates & Clauses       │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │     Backend / API        │
+                    │  - Authentication        │
+                    │  - Input Validation      │
+                    │  - Request Management    │
+                    └────────────┬────────────┘
+                                 │
+                    ┌────────────▼────────────┐
+                    │   Prompt Engineering    │
+                    │  - System Instructions   │
+                    │  - User Requirements     │
+                    │  - Legal Templates       │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │     Gemini 2.5 Pro      │
+                    │  Generative AI Model    │
+                    │  - Reasoning            │
+                    │  - Drafting             │
+                    │  - Structured Output    │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │ Output Validation Layer │
+                    │  - JSON Validation      │
+                    │  - Required Fields      │
+                    │  - Clause Validation    │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │ Document Generation     │
+                    │  - DOCX                 │
+                    │  - PDF                  │
+                    │  - Preview              │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │       User Review       │
+                    │  Edit → Approve → Export│
+                    └─────────────────────────┘
+
+3. Major Architecture Components
+A. Presentation Layer
+The frontend provides the interface through which users specify their legal-document requirements.
+
+Responsibilities:
+
+User registration/login
+
+Document-type selection
+
+Collection of party information
+
+Collection of terms and conditions
+
+Effective and termination dates
+
+Clause selection
+
+Document preview
+
+Editing generated content
+
+Download/export
+
+Example input:
+
+Document Type: Non-Disclosure Agreement
+
+Party A: ABC Technologies Pvt. Ltd.
+Party B: XYZ Solutions Pvt. Ltd.
+
+Effective Date: 01/10/2026
+Term: 2 years
+
+Confidential Information:
+- Business information
+- Technical information
+- Customer information
+
+Governing Law: India
+
+B. Backend/API Layer
+The backend acts as the central controller between the frontend, database, AI model, and document-generation services.
+
+Responsibilities:
+
+Authenticate users
+
+Validate incoming data
+
+Store document metadata
+
+Construct AI requests
+
+Communicate with Gemini
+
+Validate AI responses
+
+Handle errors
+
+Generate documents
+
+Maintain document versions
+
+Frontend
+   ↓
+REST API / Backend
+   ↓
+Validation
+   ↓
+AI Service
+   ↓
+Document Service
+
+C. AI/LLM Service
+This is the core Generative AI component.
+
+Selected Model: Gemini 2.5 Pro
+
+LegalEase sends structured user requirements to Gemini using a carefully designed prompt.
+
+The AI service should include:
+
+System prompt
+
+Document-specific instructions
+
+User-provided information
+
+Legal template/context where applicable
+
+Output schema
+
+Safety and validation rules
+
+The application should not simply ask the model to "write a legal document." Instead, it should constrain the expected output.
+
+For example:
+
+Generate an NDA using the supplied parties, dates,
+confidentiality requirements and governing law.
+
+Return the result according to the specified JSON schema.
+
+Required sections:
+1. Parties
+2. Definitions
+3. Confidentiality Obligations
+4. Exclusions
+5. Term
+6. Termination
+7. Governing Law
+8. Signatures
+
+4. Structured AI Output
+LegalEase should use structured output rather than depending entirely on unstructured text.
+
+Example:
+
+{
+  "documentType": "NDA",
+  "title": "NON-DISCLOSURE AGREEMENT",
+  "parties": [
+    {
+      "name": "ABC Technologies Pvt. Ltd.",
+      "role": "Disclosing Party"
+    },
+    {
+      "name": "XYZ Solutions Pvt. Ltd.",
+      "role": "Receiving Party"
+    }
+  ],
+  "effectiveDate": "2026-10-01",
+  "sections": [
+    {
+      "title": "Confidentiality",
+      "content": "..."
+    },
+    {
+      "title": "Term",
+      "content": "..."
+    },
+    {
+      "title": "Governing Law",
+      "content": "..."
+    }
+  ]
+}
+
+This makes it easier for the backend to validate and format the generated document.
+
+5. Database Layer
+A database stores user and document information.
+
+Suggested entities
+User
+ ├── user_id
+ ├── name
+ ├── email
+ └── created_at
+
+Document
+ ├── document_id
+ ├── user_id
+ ├── document_type
+ ├── title
+ ├── status
+ ├── created_at
+ └── updated_at
+
+DocumentVersion
+ ├── version_id
+ ├── document_id
+ ├── content
+ ├── version_number
+ └── created_at
+
+The database allows users to save, edit, retrieve, and regenerate documents.
+
+6. Document Generation Layer
+After Gemini generates and the backend validates the structured content, the Document Generation Service converts it into a professional document.
+
+Gemini JSON
+     ↓
+Content Validator
+     ↓
+Template Engine
+     ↓
+DOCX / PDF
+
+The template engine controls:
+
+Document title
+
+Headings
+
+Numbering
+
+Paragraph formatting
+
+Page layout
+
+Signature blocks
+
+Headers/footers
+
+This separation is important because the AI should generate the legal content while the application controls the final document formatting.
+
+7. Security Architecture
+Because LegalEase processes potentially sensitive legal information, security should be part of the architecture.
+
+Security controls
+HTTPS/TLS communication
+
+Secure authentication
+
+Password hashing
+
+Role-based authorization
+
+Encryption of sensitive data
+
+Secure API-key storage
+
+Input validation
+
+Output validation
+
+Access control for documents
+
+Audit logging
+
+Secure deletion mechanisms
+
+The Gemini API key should remain on the backend and never be exposed in frontend JavaScript.
+
+8. Data Flow
+The complete workflow is:
+
+User
+ │
+ │ Legal requirements
+ ▼
+Frontend
+ │
+ │ HTTPS
+ ▼
+Backend API
+ │
+ ├── Validate input
+ │
+ ├── Save request
+ │
+ ▼
+Prompt Builder
+ │
+ │ Structured prompt
+ ▼
+Gemini 2.5 Pro
+ │
+ │ Structured response
+ ▼
+Output Validator
+ │
+ ├── Valid → Continue
+ │
+ └── Invalid → Error/Regeneration
+ │
+ ▼
+Document Generator
+ │
+ ├── DOCX
+ └── PDF
+ │
+ ▼
+Document Storage
+ │
+ ▼
+User Preview / Download
+
+9. Recommended Technology Stack
+Layer	Suggested Technology
+Frontend	React / Next.js
+Backend	Python FastAPI or Node.js
+Generative AI	Gemini 2.5 Pro
+Database	PostgreSQL
+Authentication	JWT/OAuth
+Document Generation	DOCX/PDF generation library
+Storage	Cloud object storage
+API Communication	REST/HTTPS
+Deployment	Cloud platform
+Monitoring	Application logging + monitoring
+
+The exact framework can be changed without changing the overall architecture.
+
+10. Epic 1 User Stories
+Story 1 — Model Selection
+As a system architect,
+I want to evaluate available Generative AI models,
+so that LegalEase uses an appropriate model for legal-document generation.
+
+Acceptance Criteria:
+
+Gemini models are evaluated.
+
+Context length is considered.
+
+Reasoning capability is considered.
+
+Structured-output support is considered.
+
+Cost/performance considerations are documented.
+
+Gemini 2.5 Pro is selected for the initial implementation.
+
+Story 2 — Application Architecture
+As a developer,
+I want a modular LegalEase architecture,
+so that frontend, backend, AI, database, and document-generation components can be developed independently.
+
+Acceptance Criteria:
+
+Frontend communicates through backend APIs.
+
+AI calls are isolated in an AI service.
+
+Database access is separated from business logic.
+
+Document generation is a separate service/module.
+
+API keys are not exposed to the client.
+
+Story 3 — AI Integration
+As a user,
+I want my legal requirements to be converted into a structured document,
+so that I can review and download the generated document.
+
+Acceptance Criteria:
+
+User requirements are validated.
+
+A structured prompt is created.
+
+Gemini generates the document content.
+
+AI output conforms to the expected schema.
+
+Invalid output is detected.
+
+Valid output can be converted to DOCX/PDF.
+
+11. Final Architecture Decision
+LegalEase will use a layered architecture with Gemini 2.5 Pro as the Generative AI service.
+
+The architecture separates:
+
+User Interface → Backend API → Prompt/AI Service → Gemini 2.5 Pro → Validation → Document Generation → Storage
+
+This design provides modularity, scalability, security, structured AI output, and easier maintenance, while keeping document formatting and application logic under the control of LegalEase rather than relying entirely on the AI model.
